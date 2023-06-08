@@ -11,7 +11,7 @@
     </div>
     <AddTopics @add-new-tags="addNewTags" @remove-tag="removeTag" :tags="tabs.filter(({type}) => type == 'custom').map(({ text }) => text)" v-if="type === '+'"></AddTopics>
     <div v-else class="articles">
-      <NewsArticle v-for='(article, i) in activeArticles'
+      <NewsArticle v-for='(article, i) in currentTabNews'
         v-bind:key='i'
         v-bind:title='article.title'
         v-bind:content='article.description'
@@ -28,14 +28,25 @@
 import MyTabs from '@/components/NavTabs'
 import NewsArticle from '@/components/NewsArticle'
 import AddTopics from '@/components/AddTopics'
+import {mapState,mapActions} from 'vuex'
 
 export default {
   name: 'App',
+  computed: {
+    ...mapState(['generalNews','scienceNews','technologieNews','sportNews','businessNews']),
+    // activeArticles: function () {
+    //   return this.results[this.activeTab] ? this.results[this.activeTab].articles : []
+    // }
+    tabsNews(){
+      return [this.generalNews,this.scienceNews,this.technologieNews,this.sportNews,this.businessNews]
+    },
+  },
   data () {
     return {
-      API_URL: 'https://newsapi.org/v2/top-headlines?country=ng&apiKey=ba09ef9453bd4b4bad5cd307ad133ef0&category=',
-      CUSTOM: 'https://newsapi.org/v2/everything?apiKey=ba09ef9453bd4b4bad5cd307ad133ef0&q=',
+      // API_URL: 'https://newsapi.org/v2/top-headlines?country=ng&apiKey=ba09ef9453bd4b4bad5cd307ad133ef0&category=',
+      // CUSTOM: 'https://newsapi.org/v2/everything?apiKey=ba09ef9453bd4b4bad5cd307ad133ef0&q=',
       results: [],
+      currentTabNews:null,
       fetching: false,
       activeTab: 0,
       type: 'normal',
@@ -54,90 +65,96 @@ export default {
     NewsArticle,
     AddTopics
   },
-  computed: {
-    activeArticles: function () {
-      return this.results[this.activeTab] ? this.results[this.activeTab].articles : []
-    }
-  },
+  
   watch: {
     tabs: function (old, newVal) {
       // SAVE YOUR PREFERENCES ON 'TAB' CHNAGE
-      console.log(old,newVal)
-      localStorage.setItem('tabs', JSON.stringify(this.tabs))
+      // console.log(this.currentTabNews)
+      // this.currentTabNews=newVal
+      // // console.log(old,newVal)
+      // // localStorage.setItem('tabs', JSON.stringify(this.tabs))
     }
+  },
+  async mounted(){
+    await this.fetchAllNews()
+    this.currentTabNews=this.tabs[0]
+
   },
   beforeMount () {
-    if (localStorage.getItem('tabs')) {
-      try {
-        this.tabs = JSON.parse(localStorage.getItem('tabs'))
-      } catch (cpmsp){
-        console.log(cpmsp)
-      }
-    }
-    for (let x in this.tabs) {
-      this.results[x] = {}
-    }
+    // if (localStorage.getItem('tabs')) {
+    //   try {
+    //     this.tabs = JSON.parse(localStorage.getItem('tabs'))
+    //   } catch (cpmsp){
+    //     console.log(cpmsp)
+    //   }
+    // }
+    // for (let x in this.tabs) {
+    //   this.results[x] = {}
+    // }
   },
   methods: {
-    addNewTags (newTags) {
-      console.log('New tabs', newTags)
-      this.tabs = [...this.tabs.filter(({ type }) => type === 'normal'), ...newTags]
-      let x = 0
-      while (x < this.tabs.length) {
-        if (!this.results[x]) this.results.push({})
-        x++
-      }
-    },
-    removeTag (tag) {
-      let index = this.tabs.findIndex(({ text }) => text === tag)
-      this.tabs = this.tabs.filter(({ text }) => text !== tag)
-      this.results.filter((res, i) => i !== index)
-    },
+    ...mapActions(['fetchAllNews']),
+    // addNewTags (newTags) {
+    //   console.log('New tabs', newTags)
+    //   this.tabs = [...this.tabs.filter(({ type }) => type === 'normal'), ...newTags]
+    //   let x = 0
+    //   while (x < this.tabs.length) {
+    //     if (!this.results[x]) this.results.push({})
+    //     x++
+    //   }
+    // },
+    // removeTag (tag) {
+    //   let index = this.tabs.findIndex(({ text }) => text === tag)
+    //   this.tabs = this.tabs.filter(({ text }) => text !== tag)
+    //   this.results.filter((res, i) => i !== index)
+    // },
     handleTabChange (i) {
-      let { type } = this.tabs.find((tab, ind) => ind === i)
-      this.type = type
-      this.activeTab = i
-      if (type === 'normal') {
-        this.fetchPosts(i)
-      } else {
-        this.fetchCustom(i)
-      }
+      this.currentTabNews=this.tabsNews[i]
+      // console.log(i,'wtf')
+      // let { type } = this.tabs.find((tab, ind) => ind === i)
+      // this.type = type
+      // this.activeTab = i
+      // if (type === 'normal') {
+      //   this.fetchPosts(i)
+      // } else {
+      //   this.fetchCustom(i)
+      // }
     },
-    async fetchCustom (index) {
-      if (!this.results[index].articles) this.fetching = true
-      try {
-        var result = await fetch(this.CUSTOM + this.tabs[index].text).then(res => res.json())
-        this.results = this.results.map((res, i) => {
-          return i === index
-            ? result : res
-        })
-      } catch (err) {
-        this.$toast.open({
-          message: `Couldn't fetch ${this.tabs[index].text} stories. Are you online? 😏`,
-          position: 'is-bottom',
-          duration: 4000
-        })
-      }
-      this.fetching = false
-    },
-    async fetchPosts (index) {
-      if (!this.results[index].articles) this.fetching = true
-      try {
-        var result = await fetch(this.API_URL + this.tabs[index].text)
-          .then(res => res.json())
-        this.results = this.results.map((res, i) => {
-          return i === index
-            ? result : res
-        })
-      } catch (err) {
-        this.$toast.open({
-          message: `Couldn't fetch news. Are you online? 😏`,
-          position: 'is-bottom',
-          duration: 4000
-        })
-      }
-      this.fetching = false
-    }
+    // async fetchCustom (index) {
+    //   if (!this.results[index].articles) this.fetching = true
+    //   try {
+    //     var result = await fetch(this.CUSTOM + this.tabs[index].text).then(res => res.json())
+    //     this.results = this.results.map((res, i) => {
+    //       return i === index
+    //         ? result : res
+    //     })
+    //   } catch (err) {
+    //     this.$toast.open({
+    //       message: `Couldn't fetch ${this.tabs[index].text} stories. Are you online? 😏`,
+    //       position: 'is-bottom',
+    //       duration: 4000
+    //     })
+    //   }
+    //   this.fetching = false
+    // },
+    // async fetchPosts (index) {
+    //   if (!this.results[index].articles) this.fetching = true
+    //   try {
+    //     var result = await fetch(this.API_URL + this.tabs[index].text)
+    //       .then(res => res.json())
+    //     this.results = this.results.map((res, i) => {
+    //       return i === index
+    //         ? result : res
+    //     })
+    //   } catch (err) {
+    //     this.$toast.open({
+    //       message: `Couldn't fetch news. Are you online? 😏`,
+    //       position: 'is-bottom',
+    //       duration: 4000
+    //     })
+    //   }
+    //   this.fetching = false
+    // }
   }
 }
 </script>
