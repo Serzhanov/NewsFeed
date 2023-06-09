@@ -46,9 +46,9 @@ export default {
       // API_URL: 'https://newsapi.org/v2/top-headlines?country=ng&apiKey=ba09ef9453bd4b4bad5cd307ad133ef0&category=',
       // CUSTOM: 'https://newsapi.org/v2/everything?apiKey=ba09ef9453bd4b4bad5cd307ad133ef0&q=',
       results: [],
-      currentTabNews:null,
       fetching: false,
       activeTab: 0,
+      currentTabNews:[],
       type: 'normal',
       tabs: [
         {type: 'normal', text: 'General', icon: 'bell'},
@@ -67,17 +67,19 @@ export default {
   },
   
   watch: {
-    tabs: function (old, newVal) {
-      // SAVE YOUR PREFERENCES ON 'TAB' CHNAGE
-      // console.log(this.currentTabNews)
-      // this.currentTabNews=newVal
-      // // console.log(old,newVal)
-      // // localStorage.setItem('tabs', JSON.stringify(this.tabs))
-    }
+    // tabs: function (old, newVal) {
+    //   // SAVE YOUR PREFERENCES ON 'TAB' CHNAGE
+    //   // console.log(this.currentTabNews)
+    //   // this.currentTabNews=newVal
+    //   // // console.log(old,newVal)
+    //   // // localStorage.setItem('tabs', JSON.stringify(this.tabs))
+    // }
   },
   async mounted(){
     await this.fetchAllNews()
-    this.currentTabNews=this.tabs[0]
+    this.currentTabNews=this.tabsNews[0]
+    
+    //this.currentTabNews=this.tabs[0]
 
   },
   beforeMount () {
@@ -93,7 +95,20 @@ export default {
     // }
   },
   methods: {
-    ...mapActions(['fetchAllNews']),
+    ...mapActions(['fetchGeneralNews','fetchScienceNews','fetchTechnologieNews','fetchSportNews','fetchBusinessNews']),
+
+    async fetchAllNews(){
+     
+      await Promise.all([
+          this.fetchGeneralNews(),
+          this.fetchScienceNews(),
+          this.fetchTechnologieNews(),
+          this.fetchSportNews(),
+          this.fetchBusinessNews()
+      ]).catch(error=>{
+        console.log(error)
+      })
+    },
     // addNewTags (newTags) {
     //   console.log('New tabs', newTags)
     //   this.tabs = [...this.tabs.filter(({ type }) => type === 'normal'), ...newTags]

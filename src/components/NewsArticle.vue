@@ -4,7 +4,7 @@
         <article class="media">
           <div class="media-left">
             <figure class="image is-128x128">
-              <img :src="image || 'http://www.oneilllogistics.com/content/images/news.png'" alt="Image">
+              <img :src="image || 'http://www.oneilllogistics.com/content/images/news.png'" alt="Couldn't load the">
             </figure>
           </div>
           <div class="media-content">
@@ -17,7 +17,7 @@
           </article>
         </div>
        <footer class="card-footer">
-          <a href="#" class="card-footer-item">
+          <a href='#' @click="getContext({title:title,url:link})" class="card-footer-item">
             <b-icon pack="fa" icon="bookmark-o"></b-icon>&nbsp;
             Save
           </a>
@@ -30,10 +30,20 @@
   </template>
   
   <script>
+import { mapActions } from 'vuex';
+
   export default {
     name: 'NewsArticle',
-    props: ['image', 'title', 'content', 'link', 'date']
+    props: ['image', 'title', 'content', 'link', 'date'],
+    methods:{
+      ...mapActions(['getFullContext']),
+      async getContext(obj){
+        await this.getFullContext(obj)
+      }
+    }
   }
+  
+
   </script>
   
   <style>

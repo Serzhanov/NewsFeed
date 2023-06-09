@@ -1,9 +1,16 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios'
+//import jsonp from 'jsonp';
+// axios.defaults.adapter = require('axios-jsonp');
+// import JSDOM from 'jsdom'
+// import { JSDOM } from 'jsdom';
+// import { Readability } from '@mozilla/readability';
+//import Readability   from '@mozilla/readability'
 // import VuexPersistence from "vuex-persist";
 // /require('dotenv').config();
-
+// const { JSDOM } = require('jsdom');
+// const { Readability } = require('@mozilla/readability');
 const apiKey = "3f442164b1354ba5ae409fc1a38ad98e"
 const apiNewsAddresse = "https://newsapi.org/v2/"
 // const vuexLocal = new VuexPersistence({
@@ -19,7 +26,8 @@ export default new Vuex.Store({
         scienceNews:[],
         technologieNews:[],
         sportNews:[],
-        businessNews:[]
+        businessNews:[],
+        fullContextMap:{}//title:context
 
     },
     getters:{
@@ -41,20 +49,13 @@ export default new Vuex.Store({
         setSportNews(state,news){
             state.sportNews=news
         },
+        setFullContext(state,{title,context}){
+            state.fullContextMap[title]=context
+        }
     },
     actions:{
         // eslint-disable-next-line no-unused-vars
-        fetchAllNews({ commit, dispatch }){
-            return new Promise( (resolve,reject)=>{
-                Promise.all([
-                    dispatch('fetchGeneralNews'),
-                    dispatch('fetchScienceNews'),
-                    dispatch('fetchTechnologieNews'),
-                    dispatch('fetchSportNews'),
-                    dispatch('fetchBusinessNews')
-                ]).then(resolve()).catch(reject())
-            })
-        },
+        
         fetchGeneralNews({commit}){
             return new Promise((resolve,reject)=>{
                 axios.get(apiNewsAddresse+"top-headlines?q=general&apiKey="+apiKey).then(response=>{
@@ -100,6 +101,31 @@ export default new Vuex.Store({
                     resolve(response)
                 }).catch(error=>reject(error))
             })
-        }
+        },
+        getFullContext({ commit }, article) {
+            return new Promise((resolve, reject) => {
+                console.log('wtf',article)
+                axios(article.url).then(resp=>{
+                console.log(resp)
+            //   }) { param: 'callback' }, (error, data) => {
+            //     if (error) {
+            //       reject(error);
+            //     } else {
+            //       let dom = new JSDOM(data, {
+            //         url: article.url
+            //       });
+            //       const fullArticle = dom.parse();
+            //       if (fullArticle) {
+            //         commit('setFullContext', { title: fullArticle.title, context: fullArticle.textContent });
+            //         resolve();
+            //       }
+            //     }
+            //   });
+            });
+        })
     },
+        getSummary(){},
+    },
+   
+
 })
