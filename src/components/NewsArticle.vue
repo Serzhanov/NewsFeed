@@ -1,4 +1,7 @@
 <template>
+  <div>
+    <!-- <PulseLoader class="spinner" :loading="loading" :color="color" :size="size"></PulseLoader> -->
+    <SummaryModal  v-if="showModal" @switchingLoading="switchLoading" :url="link" :loading="loading" :title="this.title" @closingModal="closeModal" :image-src="image" :context="this.fullContextMap[title]"></SummaryModal>
     <div class="card article">
       <div class="card-content">
         <article class="media">
@@ -19,28 +22,56 @@
        <footer class="card-footer">
           <a href='#' @click="getContext({title:title,url:link})" class="card-footer-item">
             <b-icon pack="fa" icon="bookmark-o"></b-icon>&nbsp;
-            Save
+            Get a summary
           </a>
           <a :href='link' target="_blank" class="card-footer-item">
             <b-icon pack="fa" icon="external-link"></b-icon>&nbsp;
-            Open
+            Open the source
           </a>
         </footer>
     </div>
+  </div>
   </template>
   
   <script>
-import { mapActions } from 'vuex';
-
+import { mapActions, mapState } from 'vuex';
+import SummaryModal from './SummaryModal.vue';
   export default {
+    components: {
+      SummaryModal
+    },
+    data(){
+      return {
+        loading:false,
+        showModal: false,
+        color:'black',
+        size:"23"
+      }
+    },
+    computed:{
+      ...mapState(['fullContextMap'])
+    },
     name: 'NewsArticle',
     props: ['image', 'title', 'content', 'link', 'date'],
     methods:{
       ...mapActions(['getFullContext']),
       async getContext(obj){
-        await this.getFullContext(obj)
+        if(!this.fullContextMap[obj.title]){
+          this.showModal = true;
+          this.loading=true
+          await this.getFullContext(obj).catch(()=>{
+            this.fullContextMap[obj.title]="Problem occured"
+          })
+          this.loading=false
+        }
+      },
+      switchLoading(e){
+        this.loading=e
+      },
+      closeModal(){
+        this.showModal=false
       }
-    }
+    },
   }
   
 
@@ -55,4 +86,19 @@ import { mapActions } from 'vuex';
   .card-content {
     overflow: hidden;
   }
+
+  .spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top-color: #3498db;
+  border-radius: 50%;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
   </style>

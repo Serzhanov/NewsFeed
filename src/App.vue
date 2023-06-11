@@ -66,33 +66,12 @@ export default {
     AddTopics
   },
   
-  watch: {
-    // tabs: function (old, newVal) {
-    //   // SAVE YOUR PREFERENCES ON 'TAB' CHNAGE
-    //   // console.log(this.currentTabNews)
-    //   // this.currentTabNews=newVal
-    //   // // console.log(old,newVal)
-    //   // // localStorage.setItem('tabs', JSON.stringify(this.tabs))
-    // }
-  },
   async mounted(){
     await this.fetchAllNews()
     this.currentTabNews=this.tabsNews[0]
     
     //this.currentTabNews=this.tabs[0]
 
-  },
-  beforeMount () {
-    // if (localStorage.getItem('tabs')) {
-    //   try {
-    //     this.tabs = JSON.parse(localStorage.getItem('tabs'))
-    //   } catch (cpmsp){
-    //     console.log(cpmsp)
-    //   }
-    // }
-    // for (let x in this.tabs) {
-    //   this.results[x] = {}
-    // }
   },
   methods: {
     ...mapActions(['fetchGeneralNews','fetchScienceNews','fetchTechnologieNews','fetchSportNews','fetchBusinessNews']),
@@ -106,70 +85,12 @@ export default {
           this.fetchSportNews(),
           this.fetchBusinessNews()
       ]).catch(error=>{
-        console.log(error)
+        console.error(error)
       })
     },
-    // addNewTags (newTags) {
-    //   console.log('New tabs', newTags)
-    //   this.tabs = [...this.tabs.filter(({ type }) => type === 'normal'), ...newTags]
-    //   let x = 0
-    //   while (x < this.tabs.length) {
-    //     if (!this.results[x]) this.results.push({})
-    //     x++
-    //   }
-    // },
-    // removeTag (tag) {
-    //   let index = this.tabs.findIndex(({ text }) => text === tag)
-    //   this.tabs = this.tabs.filter(({ text }) => text !== tag)
-    //   this.results.filter((res, i) => i !== index)
-    // },
     handleTabChange (i) {
       this.currentTabNews=this.tabsNews[i]
-      // console.log(i,'wtf')
-      // let { type } = this.tabs.find((tab, ind) => ind === i)
-      // this.type = type
-      // this.activeTab = i
-      // if (type === 'normal') {
-      //   this.fetchPosts(i)
-      // } else {
-      //   this.fetchCustom(i)
-      // }
     },
-    // async fetchCustom (index) {
-    //   if (!this.results[index].articles) this.fetching = true
-    //   try {
-    //     var result = await fetch(this.CUSTOM + this.tabs[index].text).then(res => res.json())
-    //     this.results = this.results.map((res, i) => {
-    //       return i === index
-    //         ? result : res
-    //     })
-    //   } catch (err) {
-    //     this.$toast.open({
-    //       message: `Couldn't fetch ${this.tabs[index].text} stories. Are you online? 😏`,
-    //       position: 'is-bottom',
-    //       duration: 4000
-    //     })
-    //   }
-    //   this.fetching = false
-    // },
-    // async fetchPosts (index) {
-    //   if (!this.results[index].articles) this.fetching = true
-    //   try {
-    //     var result = await fetch(this.API_URL + this.tabs[index].text)
-    //       .then(res => res.json())
-    //     this.results = this.results.map((res, i) => {
-    //       return i === index
-    //         ? result : res
-    //     })
-    //   } catch (err) {
-    //     this.$toast.open({
-    //       message: `Couldn't fetch news. Are you online? 😏`,
-    //       position: 'is-bottom',
-    //       duration: 4000
-    //     })
-    //   }
-    //   this.fetching = false
-    // }
   }
 }
 </script>

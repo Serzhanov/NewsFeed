@@ -20,8 +20,7 @@ export default {
     this.$emit('tab-change', this.activeTab)
   },
   watch: {
-    activeTab: function (newVal, oldVal) {
-      console.log(oldVal)
+    activeTab: function (newVal) {
       this.$emit('tab-change', newVal)
     }
   }

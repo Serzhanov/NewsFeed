@@ -1,22 +1,13 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios'
-//import jsonp from 'jsonp';
-// axios.defaults.adapter = require('axios-jsonp');
-// import JSDOM from 'jsdom'
-// import { JSDOM } from 'jsdom';
-// import { Readability } from '@mozilla/readability';
-//import Readability   from '@mozilla/readability'
-// import VuexPersistence from "vuex-persist";
-// /require('dotenv').config();
-// const { JSDOM } = require('jsdom');
-// const { Readability } = require('@mozilla/readability');
+
 const apiKey = "3f442164b1354ba5ae409fc1a38ad98e"
 const apiNewsAddresse = "https://newsapi.org/v2/"
-// const vuexLocal = new VuexPersistence({
-//     //storage: window.localStorage,
-//     storage: window.sessionStorage,
-//   })
+const apiProxyServeSummarization="https://proxyserverapp.herokuapp.com/proxy/summary"
+const LARGE=512
+const MEDIUM=1024
+const SMALL=2048
 Vue.use(Vuex)
 
 export default new Vuex.Store({
@@ -50,7 +41,15 @@ export default new Vuex.Store({
             state.sportNews=news
         },
         setFullContext(state,{title,context}){
-            state.fullContextMap[title]=context
+            state.fullContextMap[title]={
+                Large:context,
+            }
+        },
+        setSmallContext(state,{title,context}){
+            state.fullContextMap[title]["Small"]=context
+        },
+        setMediumContext(state,{title,context}){
+            state.fullContextMap[title]["Medium"]=context
         }
     },
     actions:{
@@ -58,9 +57,8 @@ export default new Vuex.Store({
         
         fetchGeneralNews({commit}){
             return new Promise((resolve,reject)=>{
-                axios.get(apiNewsAddresse+"top-headlines?q=general&apiKey="+apiKey).then(response=>{
+                axios.get(apiNewsAddresse+"top-headlines?q=general&language=en&apiKey="+apiKey).then(response=>{
                     const data=response.data.articles
-                    console.log(data)
                     commit('setGeneralNews',data)
                     resolve(response)
                 }).catch(error=>reject(error))
@@ -68,7 +66,7 @@ export default new Vuex.Store({
         },
         fetchScienceNews({commit}){
             return new Promise((resolve,reject)=>{
-                axios.get(apiNewsAddresse+"top-headlines?q=science&apiKey="+apiKey).then(response=>{
+                axios.get(apiNewsAddresse+"top-headlines?q=science&language=en&apiKey="+apiKey).then(response=>{
                     const data=response.data.articles
                     commit('setScienceNews',data)
                     resolve(response)
@@ -77,7 +75,7 @@ export default new Vuex.Store({
         },
         fetchTechnologieNews({commit}){
             return new Promise((resolve,reject)=>{
-                axios.get(apiNewsAddresse+"top-headlines?q=technologie&apiKey="+apiKey).then(response=>{
+                axios.get(apiNewsAddresse+"top-headlines?q=technologie&language=en&apiKey="+apiKey).then(response=>{
                     const data=response.data.articles
                     commit('setTechnologieNews',data)
                     resolve(response)
@@ -86,7 +84,7 @@ export default new Vuex.Store({
         },
         fetchSportNews({commit}){
             return new Promise((resolve,reject)=>{
-                axios.get(apiNewsAddresse+"top-headlines?q=sport&apiKey="+apiKey).then(response=>{
+                axios.get(apiNewsAddresse+"top-headlines?q=sport&language=en&apiKey="+apiKey).then(response=>{
                     const data=response.data.articles
                     commit('setSportNews',data)
                     resolve(response)
@@ -95,7 +93,7 @@ export default new Vuex.Store({
         },
         fetchBusinessNews({commit}){
             return new Promise((resolve,reject)=>{
-                axios.get(apiNewsAddresse+"top-headlines?q=business&apiKey="+apiKey).then(response=>{
+                axios.get(apiNewsAddresse+"top-headlines?q=business&language=en&apiKey="+apiKey).then(response=>{
                     const data=response.data.articles
                     commit('setBusinessNews',data)
                     resolve(response)
@@ -104,27 +102,37 @@ export default new Vuex.Store({
         },
         getFullContext({ commit }, article) {
             return new Promise((resolve, reject) => {
-                console.log('wtf',article)
-                axios(article.url).then(resp=>{
-                console.log(resp)
-            //   }) { param: 'callback' }, (error, data) => {
-            //     if (error) {
-            //       reject(error);
-            //     } else {
-            //       let dom = new JSDOM(data, {
-            //         url: article.url
-            //       });
-            //       const fullArticle = dom.parse();
-            //       if (fullArticle) {
-            //         commit('setFullContext', { title: fullArticle.title, context: fullArticle.textContent });
-            //         resolve();
-            //       }
-            //     }
-            //   });
+                axios.post(apiProxyServeSummarization,{url:article.url,size:LARGE}).then(resp=>{
+                const contextSummary=resp.data.contextSummary
+                commit("setFullContext",{title:article.title,context:contextSummary})
+                resolve(resp)
+            }).catch(error=>{
+                reject(error)
             });
         })
-    },
-        getSummary(){},
+        },
+        getMediumContext({ commit }, article) {
+            return new Promise((resolve, reject) => {
+                axios.post(apiProxyServeSummarization,{url:article.url,size:MEDIUM}).then(resp=>{
+                const contextSummary=resp.data.contextSummary
+                commit("setMediumContext",{title:article.title,context:contextSummary})
+                resolve(resp)
+            }).catch(error=>{
+                reject(error)
+            });
+        })
+        },
+        getSmallContext({ commit }, article) {
+            return new Promise((resolve, reject) => {
+                axios.post(apiProxyServeSummarization,{url:article.url,size:SMALL}).then(resp=>{
+                const contextSummary=resp.data.contextSummary
+                commit("setSmallContext",{title:article.title,context:contextSummary})
+                resolve(resp)
+            }).catch(error=>{
+                reject(error)
+            });
+        })
+        },
     },
    
 
